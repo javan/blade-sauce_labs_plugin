@@ -9,8 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Javan Makhmali"]
   spec.email         = ["javan@javan.us"]
 
-  spec.summary       = %q{Blad Runner plugin for Sauce Labs (saucelabs.com)}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
+  spec.summary       = %q{Blade Runner plugin for Sauce Labs (saucelabs.com)}
   spec.homepage      = "https://github.com/javan/blade_runner-sauce_labs_plugin"
   spec.license       = "MIT"
 
