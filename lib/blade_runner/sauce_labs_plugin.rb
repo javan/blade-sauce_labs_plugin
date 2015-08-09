@@ -11,8 +11,8 @@ module BladeRunner::SauceLabsPlugin
   attr_reader :config, :username, :access_key, :max_duration
 
   @config = BladeRunner.plugins.sauce_labs.config
-  @username = config.username || ENV["SAUCE_LABS_USERNAME"]
-  @access_key = config.access_key || ENV["SAUCE_LABS_ACCESS_KEY"]
+  @username = config.username || ENV["SAUCE_USERNAME"]
+  @access_key = config.access_key || ENV["SAUCE_ACCESS_KEY"]
   @max_duration = config.max_duration || 200
 
   def start
