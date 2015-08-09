@@ -1,4 +1,6 @@
 require "blade_runner/sauce_labs_plugin/version"
+require "active_support/core_ext/string/inflections"
+
 
 require "faraday"
 require "childprocess"
@@ -35,7 +37,23 @@ module BladeRunner::SauceLabsPlugin
     end
 
     def test_params
-      { url: BladeRunner.url, build: rev, platforms: platforms, framework: BladeRunner.config.framework, max_duration: max_duration }
+      { url: BladeRunner.url, platforms: platforms, framework: BladeRunner.config.framework }.merge(default_test_config).merge(test_config)
+    end
+
+    def default_test_config
+      { build: rev, max_duration: max_duration }
+    end
+
+    def test_config
+      if config.test_config
+        {}.tap do |result|
+          config.test_config.each do |key, value|
+            result[key.to_s.camelize(:lower)] = value
+          end
+        end
+      else
+        {}
+      end
     end
 
     def platforms
