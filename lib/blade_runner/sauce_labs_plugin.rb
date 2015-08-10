@@ -1,21 +1,15 @@
+require "blade_runner"
 require "blade_runner/sauce_labs_plugin/version"
-require "active_support/core_ext/string/inflections"
-
 
 require "faraday"
 require "childprocess"
 require "json"
 
+require "active_support/core_ext/string/inflections"
+
 module BladeRunner::SauceLabsPlugin
   include BladeRunner::Component
   extend self
-
-  attr_reader :config, :username, :access_key, :max_duration
-
-  @config = BladeRunner.plugins.sauce_labs.config
-  @username = config.username || ENV["SAUCE_USERNAME"]
-  @access_key = config.access_key || ENV["SAUCE_ACCESS_KEY"]
-  @max_duration = config.max_duration || 200
 
   def start
     start_tunnel
@@ -25,6 +19,22 @@ module BladeRunner::SauceLabsPlugin
 
   def stop
     stop_tunnel
+  end
+
+  def config
+    @config ||= if BladeRunner.plugins
+      BladeRunner.plugins.sauce_labs.config
+    else
+      OpenStruct.new
+    end
+  end
+
+  def username
+    config.username || ENV["SAUCE_USERNAME"]
+  end
+
+  def access_key
+    config.access_key || ENV["SAUCE_ACCESS_KEY"]
   end
 
   private
@@ -41,7 +51,7 @@ module BladeRunner::SauceLabsPlugin
     end
 
     def default_test_config
-      { build: rev, max_duration: max_duration }
+      { build: rev, max_duration: 200 }
     end
 
     def test_config
