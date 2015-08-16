@@ -1,24 +1,25 @@
-require "blade_runner"
 require "blade_runner/sauce_labs_plugin/version"
-
-require "faraday"
-require "childprocess"
-require "json"
+require "blade_runner/sauce_labs_plugin/cli"
 
 require "active_support/core_ext/string/inflections"
 
 module BladeRunner::SauceLabsPlugin
-  include BladeRunner::Component
   extend self
+  include BladeRunner::Component
+
+  autoload :Client, "blade_runner/sauce_labs_plugin/client"
+  autoload :Tunnel, "blade_runner/sauce_labs_plugin/tunnel"
 
   def start
-    start_tunnel
-    BladeRunner.config.expected_sessions = platforms.size
-    request(:post, "rest/v1/#{username}/js-tests", test_params)
+    if BladeRunner.config.interface == :ci
+      Tunnel.start
+      BladeRunner.config.expected_sessions = Client.platforms.size
+      Client.request(:post, "rest/v1/#{username}/js-tests", test_params)
+    end
   end
 
   def stop
-    stop_tunnel
+    Tunnel.stop
   end
 
   def config
@@ -38,20 +39,16 @@ module BladeRunner::SauceLabsPlugin
   end
 
   private
-    def request(method, path, params = {})
-      connection.send(method) do |req|
-        req.url path
-        req.headers["Content-Type"] = "application/json"
-        req.body = params.to_json
-      end
-    end
-
     def test_params
-      { url: BladeRunner.url, platforms: platforms, framework: BladeRunner.config.framework }.merge(default_test_config).merge(test_config)
+      { url: BladeRunner.url, platforms: Client.platforms, framework: BladeRunner.config.framework }.merge(default_test_config).merge(test_config)
     end
 
     def default_test_config
       { build: rev, max_duration: 200 }
+    end
+
+    def rev
+      @rev ||= `git rev-parse HEAD`.chomp
     end
 
     def test_config
@@ -64,72 +61,5 @@ module BladeRunner::SauceLabsPlugin
       else
         {}
       end
-    end
-
-    def platforms
-      @platforms ||= [].tap do |platforms|
-        config.browsers.each do |browser|
-          browser["platforms"].each do |platform|
-            for_browser = available_platforms.select { |p| p["long_name"] == browser["name"] }
-            version = for_browser.map { |p| p["short_version"].to_f }.sort.uniq.last
-            for_os = for_browser.select { |p| p["os"] =~ Regexp.new(platform) && p["short_version"].to_f == version }
-
-            if match = for_os.sort_by { |p| p["os"] }.last
-              platforms << [match["os"], match["api_name"], match["short_version"]]
-            end
-          end
-        end
-      end
-    end
-
-    def rev
-      @rev ||= `git rev-parse HEAD`.chomp
-    end
-
-    def connection
-      @connnection ||= Faraday.new("https://#{username}:#{access_key}@saucelabs.com/")
-    end
-
-    def available_platforms
-      @available_platforms ||= JSON.parse(connection.get("/rest/v1/info/platforms/webdriver").body)
-    end
-
-    def start_tunnel
-      return if @process
-      cmd = Pathname.new(File.dirname(__FILE__)).join("../../support/sc-#{os}/bin/sc").to_s
-      @process = ChildProcess.build(cmd, "--user", username, "--api-key", access_key)
-      reader, writer = IO.pipe
-      @process.io.stdout = @process.io.stderr = writer
-      @process.start
-
-      output = ""
-      while line = reader.gets
-        output << line
-        case line
-        when /Sauce Connect is up, you may start your tests/
-          break
-        when /Goodbye/
-          STDERR.puts output
-          raise "Sauce Connect tunnel connection error"
-        end
-      end
-
-    ensure
-      writer.close if writer
-      reader.close if reader
-    end
-
-    def stop_tunnel
-      return unless @process
-      @process.stop
-    end
-
-    def os
-      @os ||=
-        case RUBY_PLATFORM.downcase
-        when /linux/   then :linux
-        when /darwin/  then :osx
-        when /windows/ then :windows
-        end
     end
 end
