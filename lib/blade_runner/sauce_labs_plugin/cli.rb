@@ -2,21 +2,24 @@ module BladeRunner::SauceLabsPlugin::CLI
   class Sauce < Thor
     desc "browsers", "Show available browsers"
     def browsers
-      platforms = BladeRunner::SauceLabsPlugin::Client.available_platforms_by_browser
+      browsers = BladeRunner::SauceLabsPlugin::Client.available_platforms_by_browser
 
       puts
       puts "Available browsers on Sauce Labs"
       puts "--------------------------------"
       puts
 
-      platforms.each do |name, details|
-        aliases, versions = details.values_at(:aliases, :versions)
-
-        short_names = aliases.any? ? "(#{aliases.join(', ')})" : ""
-        puts "#{name} #{short_names}"
-
-        versions.each do |os, versions_for_os|
-          puts "  #{os}: #{versions_for_os.join(', ')}"
+      browsers.keys.sort.each do |name|
+        puts "#{name}:"
+        browsers[name].each do |os, details|
+          versions = details[:versions].map do |version|
+            if version.to_i == version
+              version.to_i
+            else
+              version
+            end
+          end.reject(&:zero?)
+          puts "  #{os}: #{versions.join(', ')}"
         end
 
         puts
