@@ -23,15 +23,12 @@ module BladeRunner::SauceLabsPlugin::Client
   def platforms
     [].tap do |platforms|
       config.browsers.each do |name, config|
-        browser = case config
+        browser =
+          case config
+          when is_a?(String) && present?
+            { version: config.to_f }
           when Numeric
             { version: config }
-          when String
-            if config.present?
-              { version: config.to_f }
-            else
-              {}
-            end
           when Hash
             config.symbolize_keys
           else
@@ -48,10 +45,10 @@ module BladeRunner::SauceLabsPlugin::Client
     platforms = available_platforms_by_browser[long_name]
     platform_versions = platforms.flat_map { |os, details| details[:versions] }.uniq.sort.reverse
 
-    versions = case
-      when browser[:latest_versions]
-        platform_versions.first(browser[:latest_versions])
-      when browser[:version]
+    versions =
+      if browser[:version].is_a?(Numeric) && browser[:version] < 0
+        platform_versions.first(browser[:version].abs.to_i)
+      elsif browser[:version].present?
         Array(browser[:version]).map(&:to_f)
       else
         platform_versions.first(1)

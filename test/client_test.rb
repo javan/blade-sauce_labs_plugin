@@ -51,18 +51,19 @@ class ClientTest < BladeRunner::TestCase
   end
 
   test "platforms for browser with latest versions" do
-    assert_platforms ["Mac 10.9", "chrome", "44"], chrome: { latest_versions: 1 }
+    assert_platforms ["Mac 10.9", "chrome", "44"], chrome: { version: -1 }
+    assert_platforms ["Mac 10.9", "chrome", "44"], chrome: -1
 
     assert_platforms [
         ["Mac 10.9", "chrome", "44"],
         ["Mac 10.9", "chrome", "43"]
-      ], chrome: { latest_versions: 2 }
+      ], chrome: -2
 
     assert_platforms [
         ["Mac 10.9", "chrome", "44"],
         ["Mac 10.9", "chrome", "43"],
         ["Mac 10.9", "chrome", "42"]
-      ], chrome: { latest_versions: 3 }
+      ], chrome: -3
   end
 
   test "platforms for browser on multiple operating systems with version" do
@@ -87,7 +88,7 @@ class ClientTest < BladeRunner::TestCase
         ["Mac 10.9", "chrome", "43"],
         ["Windows 10", "chrome", "44"],
         ["Windows 10", "chrome", "43"]
-      ], chrome: { os: ["Mac", "Windows"], latest_versions: 2 }
+      ], chrome: { os: ["Mac", "Windows"], version: -2 }
   end
 
   private
