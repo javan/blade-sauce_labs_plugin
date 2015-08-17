@@ -23,11 +23,7 @@ module BladeRunner::SauceLabsPlugin
   end
 
   def config
-    @config ||= if BladeRunner.plugins
-      BladeRunner.plugins.sauce_labs.config
-    else
-      OpenStruct.new
-    end
+    BladeRunner.plugins.sauce_labs.config
   end
 
   def username

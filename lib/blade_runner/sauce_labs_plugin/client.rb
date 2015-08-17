@@ -16,41 +16,71 @@ module BladeRunner::SauceLabsPlugin::Client
   end
 
   def platforms
-    @platforms ||= [].tap do |platforms|
-      config.browsers.each do |browser|
-        browser["platforms"].each do |platform|
-          for_browser = available_platforms.select { |p| p["long_name"] == browser["name"] }
-          version = for_browser.map { |p| p["short_version"].to_f }.sort.uniq.last
-          for_os = for_browser.select { |p| p["os"] =~ Regexp.new(platform) && p["short_version"].to_f == version }
+    config.browsers.flat_map do |browser|
+      platforms_for_browser(browser)
+    end
+  end
 
-          if match = for_os.sort_by { |p| p["os"] }.last
-            platforms << [match["os"], match["api_name"], match["short_version"]]
-          end
+  def platforms_for_browser(browser)
+    long_name = find_browser_long_name(browser[:name])
+    platforms = available_platforms_by_browser[long_name]
+    platform_versions = platforms.flat_map { |os, details| details[:versions] }.uniq.sort.reverse
+
+    versions = case
+      when browser[:latest_versions]
+        platform_versions.first(browser[:latest_versions])
+      when browser[:version]
+        Array(browser[:version]).map(&:to_f)
+      else
+        platform_versions.first(1)
+      end
+
+    if browser[:os]
+      Array(browser[:os]).flat_map do |browser_os|
+        versions.map do |version|
+          os = platforms.keys.detect { |os| os =~ Regexp.new(browser_os, Regexp::IGNORECASE) }
+          platforms[os][:api][version].first
         end
+      end
+    else
+      versions.map do |version|
+        os = platforms.detect { |os, details| details[:api][version].any? }.first
+        platforms[os][:api][version].first
       end
     end
   end
 
+  def find_browser_long_name(name)
+    available_platforms_by_browser.keys.detect do |long_name|
+      long_name =~ Regexp.new(name, Regexp::IGNORECASE)
+    end
+  end
+
   def available_platforms_by_browser
-    {}.tap do |list|
-      available_platforms.group_by { |p| p["api_name"] }.each do |api_name, platforms|
-        name = platforms.map { |p| p["long_name"] }.first
-        list[name] = { "aliases" => [], "versions" => {} }
+    @available_platforms_by_browser ||= {}.tap do |by_browser|
+      available_platforms.group_by { |p| p[:api_name] }.each do |api_name, platforms|
+        long_name = platforms.first[:long_name]
+        by_browser[long_name] = {}
 
-        unless api_name.downcase == name.downcase
-          list[name]["aliases"] << api_name
-        end
+        platforms.group_by { |p| p[:os].split(" ").first }.each do |os, platforms|
+          by_browser[long_name][os] = {}
+          by_browser[long_name][os][:versions] = []
+          by_browser[long_name][os][:api] = {}
 
-        if name =~ /\s/
-          list[name]["aliases"] << name.split(/\s/).map { |part| part[0] }.join
-        end
+          versions = platforms.map { |p| p[:short_version].to_f }.uniq.sort.reverse
 
-        platforms.group_by { |p| p["os"].split(" ").first }.each do |os, platforms|
-          versions = platforms.sort_by { |p| p["short_version"].to_f }.reverse.map { |p| p["short_version"] }.uniq
-          list[name]["versions"][os] = versions
+          versions.each do |version|
+            by_browser[long_name][os][:versions] << version
+
+            by_browser[long_name][os][:api][version] = platforms.map do |platform|
+              if platform[:short_version].to_f == version
+                platform.values_at(:os, :api_name, :short_version)
+              end
+            end.compact
+          end
         end
       end
-    end.with_indifferent_access
+    end
   end
 
   private
@@ -59,6 +89,6 @@ module BladeRunner::SauceLabsPlugin::Client
     end
 
     def available_platforms
-      @available_platforms ||= JSON.parse(connection.get("/rest/v1/info/platforms/webdriver").body)
+      @available_platforms ||= JSON.parse(connection.get("/rest/v1/info/platforms/webdriver").body).map(&:symbolize_keys)
     end
 end
