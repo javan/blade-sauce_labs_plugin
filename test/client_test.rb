@@ -22,6 +22,11 @@ class ClientTest < BladeRunner::TestCase
     assert_platforms ["Mac 10.9", "chrome", "44"], chrome: 44
   end
 
+  test "platforms for browser using name alias" do
+    assert_platforms ["Windows 10", "internet explorer", "11"], IE: 11
+    assert_platforms ["Windows 10", "internet explorer", "11"], ie: 11
+  end
+
   test "platforms for browser on one operating system" do
     assert_platforms ["Mac 10.9", "chrome", "44"], chrome: { os: "Mac" }
     assert_platforms ["Mac 10.9", "chrome", "44"], chrome: { os: ["Mac"] }

@@ -4,6 +4,11 @@ require "json"
 module BladeRunner::SauceLabsPlugin::Client
   extend self
 
+  ALIASES = {
+    "ie" => "Internet Explorer",
+    "IE" => "Internet Explorer"
+  }
+
   extend Forwardable
   def_delegators BladeRunner::SauceLabsPlugin, :config, :username, :access_key
 
@@ -68,8 +73,12 @@ module BladeRunner::SauceLabsPlugin::Client
   end
 
   def find_browser_long_name(name)
-    available_platforms_by_browser.keys.detect do |long_name|
-      long_name =~ Regexp.new(name, Regexp::IGNORECASE)
+    if match = ALIASES[name.to_s]
+      match
+    else
+      available_platforms_by_browser.keys.detect do |long_name|
+        long_name =~ Regexp.new(name, Regexp::IGNORECASE)
+      end
     end
   end
 
