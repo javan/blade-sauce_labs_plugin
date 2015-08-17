@@ -16,8 +16,25 @@ module BladeRunner::SauceLabsPlugin::Client
   end
 
   def platforms
-    config.browsers.flat_map do |browser|
-      platforms_for_browser(browser)
+    [].tap do |platforms|
+      config.browsers.each do |name, config|
+        browser = case config
+          when Numeric
+            { version: config }
+          when String
+            if config.present?
+              { version: config.to_f }
+            else
+              {}
+            end
+          when Hash
+            config.symbolize_keys
+          else
+            {}
+          end.merge(name: name)
+
+        platforms.concat platforms_for_browser(browser)
+      end
     end
   end
 
