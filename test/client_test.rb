@@ -36,6 +36,11 @@ class ClientTest < TestCase
         ["Mac 10.9", "chrome", "44"],
         ["Windows 10", "chrome", "44"]
       ], chrome: { os: ["Mac", "Windows"] }
+
+    assert_platforms [
+        ["Mac 10.9", "chrome", "44"],
+        ["Windows 10", "chrome", "44"]
+      ], chrome: { os: "Mac, Windows" }
   end
 
   test "platforms for browser with version" do

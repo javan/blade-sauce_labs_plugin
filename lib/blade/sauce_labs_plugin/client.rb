@@ -33,6 +33,13 @@ module Blade::SauceLabsPlugin::Client
             {}
           end.merge(name: name)
 
+        browser[:os] =
+          if browser[:os].is_a?(String)
+            browser[:os].split(",").map(&:strip)
+          else
+            Array(browser[:os])
+          end
+
         platforms.concat platforms_for_browser(browser)
       end
     end
@@ -52,8 +59,8 @@ module Blade::SauceLabsPlugin::Client
         platform_versions.first(1)
       end
 
-    if browser[:os]
-      Array(browser[:os]).flat_map do |browser_os|
+    if browser[:os].any?
+      browser[:os].flat_map do |browser_os|
         versions.map do |version|
           os = platforms.keys.detect { |os| os =~ Regexp.new(browser_os, Regexp::IGNORECASE) }
           platforms[os][:api][version].first
