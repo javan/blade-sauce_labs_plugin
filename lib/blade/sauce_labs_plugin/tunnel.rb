@@ -1,10 +1,10 @@
 require "childprocess"
 
-module BladeRunner::SauceLabsPlugin::Tunnel
+module Blade::SauceLabsPlugin::Tunnel
   extend self
 
   extend Forwardable
-  def_delegators BladeRunner::SauceLabsPlugin, :username, :access_key
+  def_delegators Blade::SauceLabsPlugin, :username, :access_key
 
   def start
     return if @process

@@ -1,19 +1,19 @@
-require "blade_runner/sauce_labs_plugin/version"
-require "blade_runner/sauce_labs_plugin/cli"
+require "blade/sauce_labs_plugin/version"
+require "blade/sauce_labs_plugin/cli"
 
 require "active_support/core_ext/string/inflections"
 
-module BladeRunner::SauceLabsPlugin
+module Blade::SauceLabsPlugin
   extend self
-  include BladeRunner::Component
+  include Blade::Component
 
-  autoload :Client, "blade_runner/sauce_labs_plugin/client"
-  autoload :Tunnel, "blade_runner/sauce_labs_plugin/tunnel"
+  autoload :Client, "blade/sauce_labs_plugin/client"
+  autoload :Tunnel, "blade/sauce_labs_plugin/tunnel"
 
   def start
-    if BladeRunner.config.interface == :ci
+    if Blade.config.interface == :ci
       Tunnel.start
-      BladeRunner.config.expected_sessions = Client.platforms.size
+      Blade.config.expected_sessions = Client.platforms.size
       Client.request(:post, "rest/v1/#{username}/js-tests", test_params)
     end
   end
@@ -23,7 +23,7 @@ module BladeRunner::SauceLabsPlugin
   end
 
   def config
-    BladeRunner.plugins.sauce_labs.config
+    Blade.plugins.sauce_labs.config
   end
 
   def username
@@ -36,7 +36,7 @@ module BladeRunner::SauceLabsPlugin
 
   private
     def test_params
-      { url: BladeRunner.url, platforms: Client.platforms, framework: BladeRunner.config.framework }.merge(default_test_config).merge(test_config)
+      { url: Blade.url, platforms: Client.platforms, framework: Blade.config.framework }.merge(default_test_config).merge(test_config)
     end
 
     def default_test_config

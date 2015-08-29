@@ -1,8 +1,8 @@
-require "blade_runner"
-require "blade_runner/test_helper"
+require "blade"
+require "blade/test_helper"
 require "webmock/minitest"
 
-class ClientTest < BladeRunner::TestCase
+class ClientTest < Blade::TestCase
   setup do
     WebMock.disable_net_connect!
 
@@ -99,10 +99,10 @@ class ClientTest < BladeRunner::TestCase
     end
 
     def client
-      BladeRunner::SauceLabsPlugin::Client
+      Blade::SauceLabsPlugin::Client
     end
 
     def initialize_with_browsers(browsers)
-      BladeRunner.initialize! plugins: { sauce_labs: { browsers: browsers } }
+      Blade.initialize! plugins: { sauce_labs: { browsers: browsers } }
     end
 end

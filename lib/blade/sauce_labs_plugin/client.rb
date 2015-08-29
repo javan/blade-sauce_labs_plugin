@@ -1,7 +1,7 @@
 require "faraday"
 require "json"
 
-module BladeRunner::SauceLabsPlugin::Client
+module Blade::SauceLabsPlugin::Client
   extend self
 
   ALIASES = {
@@ -10,7 +10,7 @@ module BladeRunner::SauceLabsPlugin::Client
   }
 
   extend Forwardable
-  def_delegators BladeRunner::SauceLabsPlugin, :config, :username, :access_key
+  def_delegators Blade::SauceLabsPlugin, :config, :username, :access_key
 
   def request(method, path, params = {})
     connection.send(method) do |req|

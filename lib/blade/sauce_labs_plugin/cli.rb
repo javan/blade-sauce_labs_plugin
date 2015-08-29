@@ -1,8 +1,8 @@
-module BladeRunner::SauceLabsPlugin::CLI
+module Blade::SauceLabsPlugin::CLI
   class Sauce < Thor
     desc "browsers", "Show available browsers"
     def browsers
-      browsers = BladeRunner::SauceLabsPlugin::Client.available_platforms_by_browser
+      browsers = Blade::SauceLabsPlugin::Client.available_platforms_by_browser
 
       puts
       puts "Available browsers on Sauce Labs"
@@ -28,4 +28,4 @@ module BladeRunner::SauceLabsPlugin::CLI
   end
 end
 
-BladeRunner::CLI.register BladeRunner::SauceLabsPlugin::CLI::Sauce, "sauce", "sauce COMMAND", "Sauce Labs commands"
+Blade::CLI.register Blade::SauceLabsPlugin::CLI::Sauce, "sauce", "sauce COMMAND", "Sauce Labs commands"

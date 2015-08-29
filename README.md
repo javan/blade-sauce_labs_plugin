@@ -1,1 +1,1 @@
-[Blade Runner](https://github.com/javan/blade_runner) plugin [Sauce Labs](https://saucelabs.com/)
+[Blade](https://github.com/javan/blade) plugin for [Sauce Labs](https://saucelabs.com/)
