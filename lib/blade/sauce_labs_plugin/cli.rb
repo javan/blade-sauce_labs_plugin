@@ -9,7 +9,7 @@ module Blade::SauceLabsPlugin::CLI
       puts "--------------------------------"
       puts
 
-      browsers.keys.sort.each do |name|
+      browsers.keys.sort_by(&:downcase).each do |name|
         puts "#{name}:"
         browsers[name].each do |os, details|
           versions = details[:versions].map do |version|
