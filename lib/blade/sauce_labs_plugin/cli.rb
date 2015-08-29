@@ -13,12 +13,12 @@ module Blade::SauceLabsPlugin::CLI
         puts "#{name}:"
         browsers[name].each do |os, details|
           versions = details[:versions].map do |version|
-            if version.to_i == version
+            if version.to_i.to_s == version
               version.to_i
             else
               version
             end
-          end.reject(&:zero?)
+          end
           puts "  #{os}: #{versions.join(', ')}"
         end
 

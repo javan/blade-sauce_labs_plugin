@@ -42,6 +42,11 @@ class ClientTest < TestCase
     assert_platforms ["Mac 10.9", "chrome", "43"], chrome: 43
   end
 
+  test "platforms for browser with non-numeric version" do
+    assert_platforms ["Mac 10.9", "chrome", "dev"], chrome: "dev"
+    assert_platforms ["Mac 10.9", "chrome", "beta"], chrome: { version: "beta" }
+  end
+
   test "platforms for browser with multiple versions" do
     assert_platforms [
         ["Mac 10.9", "chrome", "41"],

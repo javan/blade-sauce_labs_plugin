@@ -25,9 +25,7 @@ module Blade::SauceLabsPlugin::Client
       config.browsers.each do |name, config|
         browser =
           case config
-          when is_a?(String) && present?
-            { version: config.to_f }
-          when Numeric
+          when String, Numeric
             { version: config }
           when Hash
             config.symbolize_keys
@@ -43,13 +41,13 @@ module Blade::SauceLabsPlugin::Client
   def platforms_for_browser(browser)
     long_name = find_browser_long_name(browser[:name])
     platforms = available_platforms_by_browser[long_name]
-    platform_versions = platforms.flat_map { |os, details| details[:versions] }.uniq.sort.reverse
+    platform_versions = platforms.flat_map { |os, details| details[:versions] }.uniq.sort_by(&:to_f).reverse
 
     versions =
       if browser[:version].is_a?(Numeric) && browser[:version] < 0
-        platform_versions.first(browser[:version].abs.to_i)
+        platform_versions.select { |v| v =~ /^\d/ }.first(browser[:version].abs.to_i)
       elsif browser[:version].present?
-        Array(browser[:version]).map(&:to_f)
+        Array(browser[:version]).map(&:to_s)
       else
         platform_versions.first(1)
       end
@@ -90,13 +88,13 @@ module Blade::SauceLabsPlugin::Client
           by_browser[long_name][os][:versions] = []
           by_browser[long_name][os][:api] = {}
 
-          versions = platforms.map { |p| p[:short_version].to_f }.uniq.sort.reverse
+          versions = platforms.map { |p| p[:short_version] }.uniq.sort_by(&:to_f).reverse
 
           versions.each do |version|
             by_browser[long_name][os][:versions] << version
 
             by_browser[long_name][os][:api][version] = platforms.map do |platform|
-              if platform[:short_version].to_f == version
+              if platform[:short_version] == version
                 platform.values_at(:os, :api_name, :short_version)
               end
             end.compact
