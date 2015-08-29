@@ -9,7 +9,7 @@ module Blade::SauceLabsPlugin::Tunnel
   def start
     return if @process
     cmd = Pathname.new(File.dirname(__FILE__)).join("../../../support/sc-#{os}/bin/sc").to_s
-    @process = ChildProcess.build(cmd, "--user", username, "--api-key", access_key)
+    @process = ChildProcess.build(cmd, "--user", username, "--api-key", access_key, "--no-ssl-bump-domains", "*")
     reader, writer = IO.pipe
     @process.io.stdout = @process.io.stderr = writer
     @process.start
