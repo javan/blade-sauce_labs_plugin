@@ -1,8 +1,7 @@
-require "blade"
-require "blade/test_helper"
+require "test_helper"
 require "webmock/minitest"
 
-class ClientTest < Blade::TestCase
+class ClientTest < TestCase
   setup do
     WebMock.disable_net_connect!
 

@@ -1,3 +1,4 @@
+require "blade"
 require "blade/sauce_labs_plugin/version"
 require "blade/sauce_labs_plugin/cli"
 
