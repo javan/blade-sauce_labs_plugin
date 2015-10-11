@@ -45,7 +45,7 @@ module Blade::SauceLabsPlugin
     end
 
     def default_test_config
-      { build: rev, max_duration: 200 }
+      { build: rev, maxDuration: 300 }
     end
 
     def rev
