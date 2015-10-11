@@ -1,4 +1,5 @@
-require "childprocess"
+require "securerandom"
+require "shellwords"
 
 module Blade::SauceLabsPlugin::Tunnel
   extend self
@@ -6,37 +7,39 @@ module Blade::SauceLabsPlugin::Tunnel
   extend Forwardable
   def_delegators Blade::SauceLabsPlugin, :username, :access_key
 
-  def start
-    return if @process
-    cmd = Pathname.new(File.dirname(__FILE__)).join("../../../support/sc-#{os}/bin/sc").to_s
-    @process = ChildProcess.build(cmd, "--user", username, "--api-key", access_key)
-    reader, writer = IO.pipe
-    @process.io.stdout = @process.io.stderr = writer
-    @process.start
+  attr_reader :identifier, :ready_file, :pid
 
-    output = ""
-    while line = reader.gets
-      output << line
-      case line
-      when /Sauce Connect is up, you may start your tests/
-        break
-      when /Goodbye/
-        STDERR.puts output
-        raise "Sauce Connect tunnel connection error"
+  def start
+    @identifier = SecureRandom.hex(10)
+    @ready_file = Blade.tmp_path.join("sauce_tunnel_#{identifier}_ready").to_s
+    @pid = EM::DeferrableChildProcess.open(command).get_pid
+
+    timer = EM::PeriodicTimer.new(1) do
+      if File.exists?(ready_file)
+        File.unlink(ready_file)
+        timer.cancel
+        yield
       end
     end
-
-  ensure
-    writer.close if writer
-    reader.close if reader
   end
 
   def stop
-    return unless @process
-    @process.stop
+    Process.kill("INT", pid) rescue nil
   end
 
   private
+    def command
+      [tunnel_command, tunnel_args].join(" ")
+    end
+
+    def tunnel_command
+      Pathname.new(File.dirname(__FILE__)).join("../../../support/sc-#{os}/bin/sc").to_s
+    end
+
+    def tunnel_args
+      ["--user", username, "--api-key", access_key, "--tunnel-identifier", identifier, "--readyfile", ready_file].shelljoin
+    end
+
     def os
       @os ||=
         case RUBY_PLATFORM.downcase

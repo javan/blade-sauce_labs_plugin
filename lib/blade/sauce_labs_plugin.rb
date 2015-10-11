@@ -13,9 +13,10 @@ module Blade::SauceLabsPlugin
 
   def start
     if Blade.config.interface == :ci
-      Tunnel.start
-      Blade.config.expected_sessions = Client.platforms.size
-      Client.request(:post, "rest/v1/#{username}/js-tests", test_params)
+      Tunnel.start do
+        Blade.config.expected_sessions = Client.platforms.size
+        Client.request(:post, "rest/v1/#{username}/js-tests", test_params)
+      end
     end
   end
 
@@ -37,7 +38,7 @@ module Blade::SauceLabsPlugin
 
   private
     def test_params
-      { url: Blade.url, platforms: Client.platforms, framework: Blade.config.framework }.merge(default_test_config).merge(test_config)
+      { url: Blade.url, platforms: Client.platforms, framework: Blade.config.framework, tunnelIdentifier: Tunnel.identifier }.merge(default_test_config).merge(test_config)
     end
 
     def default_test_config
