@@ -24,6 +24,9 @@ module Blade::SauceLabsPlugin
     Tunnel.stop
   end
 
+  # Ensure the tunnel is closed
+  at_exit { stop }
+
   def config
     Blade.plugins.sauce_labs.config
   end
