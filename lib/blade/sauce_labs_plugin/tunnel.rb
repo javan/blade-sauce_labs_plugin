@@ -7,16 +7,14 @@ module Blade::SauceLabsPlugin::Tunnel
   extend Forwardable
   def_delegators Blade::SauceLabsPlugin, :username, :access_key
 
-  attr_reader :identifier, :ready_file, :pid
+  attr_reader :identifier, :pid
 
   def start
     @identifier = SecureRandom.hex(10)
-    @ready_file = Blade.tmp_path.join("sauce_tunnel_#{identifier}_ready").to_s
     @pid = EM::DeferrableChildProcess.open(command).get_pid
 
     timer = EM::PeriodicTimer.new(1) do
-      if File.exists?(ready_file)
-        File.unlink(ready_file)
+      if ready_file_exists?
         timer.cancel
         yield
       end
@@ -24,7 +22,9 @@ module Blade::SauceLabsPlugin::Tunnel
   end
 
   def stop
-    Process.kill("INT", pid) rescue nil
+    signal = ready_file_exists? ? "INT" : "KILL"
+    remove_ready_file
+    Process.kill(signal, pid) rescue nil
   end
 
   private
@@ -37,7 +37,19 @@ module Blade::SauceLabsPlugin::Tunnel
     end
 
     def tunnel_args
-      ["--user", username, "--api-key", access_key, "--tunnel-identifier", identifier, "--readyfile", ready_file].shelljoin
+      ["--user", username, "--api-key", access_key, "--tunnel-identifier", identifier, "--readyfile", ready_file_path].shelljoin
+    end
+
+    def ready_file_path
+      Blade.tmp_path.join("sauce_tunnel_#{identifier}_ready").to_s
+    end
+
+    def ready_file_exists?
+      File.exists?(ready_file_path)
+    end
+
+    def remove_ready_file
+      File.unlink(ready_file_path) if ready_file_exists?
     end
 
     def os
