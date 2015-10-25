@@ -1,3 +1,4 @@
+require "childprocess"
 require "securerandom"
 require "shellwords"
 
@@ -5,7 +6,7 @@ module Blade::SauceLabsPlugin::Tunnel
   extend self
 
   extend Forwardable
-  def_delegators Blade::SauceLabsPlugin, :username, :access_key, :config, :log
+  def_delegators Blade::SauceLabsPlugin, :username, :access_key, :config, :log, :log?
 
   attr_reader :identifier, :pid
 
@@ -17,8 +18,12 @@ module Blade::SauceLabsPlugin::Tunnel
     log "PWD: #{`pwd`.chomp}"
     log "TMP: #{`ls -al #{Blade.tmp_path.to_s}`.chomp}"
 
-    @pid = EM::DeferrableChildProcess.open(command).get_pid
-    log "Tunnel PID: #{@pid}"
+    @process = ChildProcess.build(tunnel_command, *tunnel_args)
+    @process.leader = true
+    @process.io.inherit! if log?
+    @process.start
+
+    log @process.inspect
 
     timer = EM::PeriodicTimer.new(1) do
       if ready_file_exists?
@@ -27,24 +32,23 @@ module Blade::SauceLabsPlugin::Tunnel
         yield
       else
         log "Ready file not preset yet"
-        log `ps auxww | grep #{@pid} | grep -v grep`.chomp
       end
     end
   end
 
   def stop
-    signal = ready_file_exists? ? "INT" : "KILL"
-    remove_ready_file
-    Process.kill(signal, pid) rescue nil
+    begin
+      @process.poll_for_exit(10)
+    rescue ChildProcess::TimeoutError
+      @process.stop
+    rescue
+      nil
+    end
   end
 
   private
     def command
-      [command_prefix, tunnel_command, tunnel_args].compact.join(" ")
-    end
-
-    def command_prefix
-      "sudo" if config.sudo
+      [tunnel_command, tunnel_args].compact.join(" ")
     end
 
     def tunnel_command
@@ -52,7 +56,7 @@ module Blade::SauceLabsPlugin::Tunnel
     end
 
     def tunnel_args
-      ["--user", username, "--api-key", access_key, "--tunnel-identifier", identifier, "--readyfile", ready_file_path].shelljoin
+      ["--user", username, "--api-key", access_key, "--tunnel-identifier", identifier, "--readyfile", ready_file_path]
     end
 
     def ready_file_path

@@ -24,4 +24,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "blade"
   spec.add_dependency "faraday"
+  spec.add_dependency "childprocess"
 end
