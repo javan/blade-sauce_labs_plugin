@@ -39,14 +39,14 @@ module Blade::SauceLabsPlugin
     config.access_key || ENV["SAUCE_ACCESS_KEY"]
   end
 
-  def log(message)
-    if log?
+  def debug(message)
+    if debug?
       STDERR.puts message
     end
   end
 
-  def log?
-    config.log == true
+  def debug?
+    config.debug == true
   end
 
   private

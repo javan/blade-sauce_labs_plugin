@@ -10,7 +10,7 @@ module Blade::SauceLabsPlugin::Client
   }
 
   extend Forwardable
-  def_delegators Blade::SauceLabsPlugin, :config, :username, :access_key, :log?
+  def_delegators Blade::SauceLabsPlugin, :config, :username, :access_key, :debug?
 
   def request(method, path, params = {})
     connection.send(method) do |req|
@@ -116,7 +116,7 @@ module Blade::SauceLabsPlugin::Client
       @connnection ||= Faraday.new("https://#{username}:#{access_key}@saucelabs.com/") do |faraday|
         faraday.adapter Faraday.default_adapter
         faraday.request :url_encoded
-        faraday.response :logger if log?
+        faraday.response :logger if debug?
       end
     end
 

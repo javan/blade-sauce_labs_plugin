@@ -1,54 +1,44 @@
 require "childprocess"
 require "securerandom"
-require "shellwords"
 
 module Blade::SauceLabsPlugin::Tunnel
   extend self
 
   extend Forwardable
-  def_delegators Blade::SauceLabsPlugin, :username, :access_key, :config, :log, :log?
+  def_delegators Blade::SauceLabsPlugin, :username, :access_key, :config, :debug, :debug?
 
-  attr_reader :identifier, :pid
+  attr_reader :identifier, :process
 
   def start
     @identifier = SecureRandom.hex(10)
-    log "Tunnel command: `#{tunnel_command}'"
-    log "Tunnel command executable? #{Pathname.new(tunnel_command).executable?}"
-    log "Command: `#{command}'"
-    log "PWD: #{`pwd`.chomp}"
-    log "TMP: #{`ls -al #{Blade.tmp_path.to_s}`.chomp}"
-
-    @process = ChildProcess.build(tunnel_command, *tunnel_args)
-    @process.leader = true
-    @process.io.inherit! if log?
-    @process.start
-
-    log @process.inspect
+    @process = create_child_process
 
     timer = EM::PeriodicTimer.new(1) do
       if ready_file_exists?
-        log "Ready file present"
         timer.cancel
         yield
-      else
-        log "Ready file not preset yet"
       end
     end
   end
 
   def stop
     begin
-      @process.poll_for_exit(10)
+      process.poll_for_exit(10)
     rescue ChildProcess::TimeoutError
-      @process.stop
+      process.stop
     rescue
       nil
     end
   end
 
   private
-    def command
-      [tunnel_command, tunnel_args].compact.join(" ")
+    def create_child_process
+      ChildProcess.build(tunnel_command, *tunnel_args).tap do |process|
+        process.leader = true
+        process.io.inherit! if debug?
+        process.start
+        debug process.inspect
+      end
     end
 
     def tunnel_command
