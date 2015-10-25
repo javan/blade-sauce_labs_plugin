@@ -39,6 +39,16 @@ module Blade::SauceLabsPlugin
     config.access_key || ENV["SAUCE_ACCESS_KEY"]
   end
 
+  def log(message)
+    if log?
+      STDERR.puts message
+    end
+  end
+
+  def log?
+    config.log == true
+  end
+
   private
     def test_params
       { url: Blade.url, platforms: Client.platforms, framework: Blade.config.framework, tunnelIdentifier: Tunnel.identifier }.merge(default_test_config).merge(test_config)

@@ -5,18 +5,26 @@ module Blade::SauceLabsPlugin::Tunnel
   extend self
 
   extend Forwardable
-  def_delegators Blade::SauceLabsPlugin, :username, :access_key
+  def_delegators Blade::SauceLabsPlugin, :username, :access_key, :log
 
   attr_reader :identifier, :pid
 
   def start
     @identifier = SecureRandom.hex(10)
+    log "Tunnel command: `#{tunnel_command}'"
+    log "Tunnel command executable? #{Pathname.new(tunnel_command).executable?}"
+    log "Command: `#{command}'"
+
     @pid = EM::DeferrableChildProcess.open(command).get_pid
+    log "Tunnel PID: #{@pid}"
 
     timer = EM::PeriodicTimer.new(1) do
       if ready_file_exists?
+        log "Ready file present"
         timer.cancel
         yield
+      else
+        log "Ready file not preset yet"
       end
     end
   end
