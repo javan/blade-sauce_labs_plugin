@@ -14,6 +14,8 @@ module Blade::SauceLabsPlugin::Tunnel
     log "Tunnel command: `#{tunnel_command}'"
     log "Tunnel command executable? #{Pathname.new(tunnel_command).executable?}"
     log "Command: `#{command}'"
+    log "PWD: #{`pwd`.chomp}"
+    log "TMP: #{`ls -al #{Blade.tmp_path.to_s}`.chomp}"
 
     @pid = EM::DeferrableChildProcess.open(command).get_pid
     log "Tunnel PID: #{@pid}"
@@ -25,6 +27,7 @@ module Blade::SauceLabsPlugin::Tunnel
         yield
       else
         log "Ready file not preset yet"
+        log `ps auxww | grep #{@pid} | grep -v grep`.chomp
       end
     end
   end
