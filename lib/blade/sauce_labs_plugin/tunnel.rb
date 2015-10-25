@@ -5,7 +5,7 @@ module Blade::SauceLabsPlugin::Tunnel
   extend self
 
   extend Forwardable
-  def_delegators Blade::SauceLabsPlugin, :username, :access_key, :log
+  def_delegators Blade::SauceLabsPlugin, :username, :access_key, :config, :log
 
   attr_reader :identifier, :pid
 
@@ -40,7 +40,11 @@ module Blade::SauceLabsPlugin::Tunnel
 
   private
     def command
-      [tunnel_command, tunnel_args].join(" ")
+      [command_prefix, tunnel_command, tunnel_args].compact.join(" ")
+    end
+
+    def command_prefix
+      "sudo" if config.sudo
     end
 
     def tunnel_command
