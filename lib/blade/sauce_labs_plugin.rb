@@ -51,26 +51,49 @@ module Blade::SauceLabsPlugin
 
   private
     def test_params
-      { url: Blade.url, platforms: Client.platforms, framework: Blade.config.framework, tunnelIdentifier: Tunnel.identifier }.merge(default_test_config).merge(test_config)
+      params = default_test_config
+      params.merge! env_test_config || {}
+      params.merge! config.test_config || {}
+      camelize_keys(params)
     end
 
     def default_test_config
-      { build: rev, maxDuration: 300 }
+      {
+        url: Blade.url,
+        platforms: Client.platforms,
+        framework: Blade.config.framework,
+        tunnel_identifier: Tunnel.identifier,
+        max_duration: 300,
+        build: default_build
+      }
+    end
+
+    def env_test_config
+      if ENV["TRAVIS"]
+        {
+          build: ENV["TRAVIS_BUILD_NUMBER"],
+          custom_data: {
+            commit: ENV["TRAVIS_COMMIT"],
+            pull_request: ENV["TRAVIS_PULL_REQUEST"],
+            repo: ENV["TRAVIS_REPO_SLUG"]
+          }
+        }
+      end
+    end
+
+    def default_build
+      [rev, Time.now.utc.to_i].select(&:present?).join("-")
     end
 
     def rev
-      @rev ||= `git rev-parse HEAD`.chomp
+      @rev ||= `git rev-parse HEAD 2>/dev/null`.chomp
     end
 
-    def test_config
-      if config.test_config
-        {}.tap do |result|
-          config.test_config.each do |key, value|
-            result[key.to_s.camelize(:lower)] = value
-          end
+    def camelize_keys(hash)
+      {}.tap do |result|
+        hash.each do |key, value|
+          result[key.to_s.camelize(:lower)] = value
         end
-      else
-        {}
       end
     end
 end
