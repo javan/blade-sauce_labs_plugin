@@ -70,14 +70,16 @@ module Blade::SauceLabsPlugin
 
     def env_test_config
       if ENV["TRAVIS"]
-        {
-          build: ENV["TRAVIS_BUILD_NUMBER"],
-          custom_data: {
-            commit: ENV["TRAVIS_COMMIT"],
-            pull_request: ENV["TRAVIS_PULL_REQUEST"],
-            repo: ENV["TRAVIS_REPO_SLUG"]
-          }
-        }
+        tags = [
+          ["commit", ENV["TRAVIS_COMMIT"]].join(":"),
+          ["repo", ENV["TRAVIS_REPO_SLUG"]].join(":"),
+        ]
+
+        if (pr = ENV["TRAVIS_PULL_REQUEST"]).present?
+          tags << ["pull_request", pr].join(":")
+        end
+
+        { build: ENV["TRAVIS_BUILD_NUMBER"], tags: tags }
       end
     end
 
