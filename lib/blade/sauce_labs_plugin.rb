@@ -51,10 +51,15 @@ module Blade::SauceLabsPlugin
 
   private
     def test_params
-      params = default_test_config
-      params.merge! env_test_config || {}
-      params.merge! config.test_config || {}
-      camelize_keys(params)
+      camelize_keys(combined_test_config)
+    end
+
+    def combined_test_config
+      default_test_config.merge(env_test_config).merge(test_config)
+    end
+
+    def test_config
+      config.test_config || {}
     end
 
     def default_test_config
@@ -64,23 +69,38 @@ module Blade::SauceLabsPlugin
         framework: Blade.config.framework,
         tunnel_identifier: Tunnel.identifier,
         max_duration: 300,
+        name: "Blade Runner CI",
         build: default_build
       }
     end
 
     def env_test_config
-      if ENV["TRAVIS"]
-        tags = [
-          ["commit", ENV["TRAVIS_COMMIT"]].join(":"),
-          ["repo", ENV["TRAVIS_REPO_SLUG"]].join(":"),
-        ]
-
-        if (pr = ENV["TRAVIS_PULL_REQUEST"]).present?
-          tags << ["pull_request", pr].join(":")
+      {}.tap do |config|
+        if build = get_env_value(:build_number)
+          config[:build] = build
         end
 
-        { build: ENV["TRAVIS_BUILD_NUMBER"], tags: tags }
+        tags = []
+
+        [:commit, :repo_slug, :pull_request].each do |key|
+          if tag = tag_from_env(key)
+            tags << tag
+          end
+        end
+
+        config[:tags] = tags if tags.any?
       end
+    end
+
+    def tag_from_env(key)
+      if value = get_env_value(key)
+        [key, value].join(":")
+      end
+    end
+
+    def get_env_value(key)
+      key = key.to_s.upcase
+      ENV[key].presence || ENV["TRAVIS_#{key}"].presence
     end
 
     def default_build
