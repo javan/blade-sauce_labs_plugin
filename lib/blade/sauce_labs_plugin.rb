@@ -55,7 +55,7 @@ module Blade::SauceLabsPlugin
     end
 
     def combined_test_config
-      default_test_config.merge(env_test_config).merge(test_config)
+      default_test_config.merge(env_test_config).merge(test_config).select { |k, v| v.present? }
     end
 
     def test_config
@@ -76,7 +76,7 @@ module Blade::SauceLabsPlugin
 
     def env_test_config
       {}.tap do |config|
-        if build = get_env_value(:build_number)
+        if build = (get_env_value(:build) || get_env_value(:build_number))
           config[:build] = build
         end
 
@@ -100,7 +100,7 @@ module Blade::SauceLabsPlugin
 
     def get_env_value(key)
       key = key.to_s.upcase
-      ENV[key].presence || ENV["TRAVIS_#{key}"].presence
+      ENV[key] || ENV["TRAVIS_#{key}"]
     end
 
     def default_build
