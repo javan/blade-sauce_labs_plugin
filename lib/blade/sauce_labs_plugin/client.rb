@@ -9,6 +9,8 @@ module Blade::SauceLabsPlugin::Client
     "IE" => "Internet Explorer"
   }
 
+  MOBILE_PATTERN = /iphone|ipad|android/i
+
   extend Forwardable
   def_delegators Blade::SauceLabsPlugin, :config, :username, :access_key, :debug?
 
@@ -40,8 +42,18 @@ module Blade::SauceLabsPlugin::Client
             Array(browser[:os])
           end
 
-        platforms.concat platforms_for_browser(browser)
+        platforms.concat filter_platforms(platforms_for_browser(browser))
       end
+    end
+  end
+
+  def filter_platforms(platforms)
+    if ENV["DESKTOP"] == "true"
+      platforms.reject { |platform| platform[1] =~ MOBILE_PATTERN }
+    elsif ENV["MOBILE"] == "true"
+      platforms.select { |platform| platform[1] =~ MOBILE_PATTERN }
+    else
+      platforms
     end
   end
 
