@@ -104,6 +104,7 @@ class ClientTest < TestCase
     def assert_platforms(platforms, browsers)
       initialize_with_browsers browsers
       platforms = [platforms] unless platforms.first.is_a?(Array)
+      platforms.map! { |p| { platform: p[0], browserName: p[1], version: p[2] } }
       assert_equal platforms, client.platforms
     end
 

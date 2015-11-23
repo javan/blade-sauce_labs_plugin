@@ -22,6 +22,27 @@ module Blade::SauceLabsPlugin::Client
     end
   end
 
+  def get_jobs(options = {})
+    JSON.parse(request(:get, "/rest/v1/#{username}/jobs?#{options.to_query}").body)
+  end
+
+  def update_job(id, params = {})
+    request(:put, "/rest/v1/#{username}/jobs/#{id}", params)
+  end
+
+  def stop_job(id)
+    request(:put, "/rest/v1/#{username}/jobs/#{id}/stop")
+  end
+
+  def delete_job(id)
+    request(:delete, "/rest/v1/#{username}/jobs/#{id}")
+  end
+
+  def get_available_vm_count
+    data = JSON.parse(request(:get, "/rest/v1/users/#{username}/concurrency").body)
+    data["concurrency"][username]["remaining"]["overall"]
+  end
+
   def platforms
     [].tap do |platforms|
       config.browsers.each do |name, config|
@@ -42,18 +63,8 @@ module Blade::SauceLabsPlugin::Client
             Array(browser[:os])
           end
 
-        platforms.concat filter_platforms(platforms_for_browser(browser))
+        platforms.concat platforms_for_browser(browser)
       end
-    end
-  end
-
-  def filter_platforms(platforms)
-    if ENV["DESKTOP"] == "true"
-      platforms.reject { |platform| platform[1] =~ MOBILE_PATTERN }
-    elsif ENV["MOBILE"] == "true"
-      platforms.select { |platform| platform[1] =~ MOBILE_PATTERN }
-    else
-      platforms
     end
   end
 
@@ -75,13 +86,15 @@ module Blade::SauceLabsPlugin::Client
       browser[:os].flat_map do |browser_os|
         versions.map do |version|
           os = platforms.keys.detect { |os| os =~ Regexp.new(browser_os, Regexp::IGNORECASE) }
-          platforms[os][:api][version].first
+          platform = platforms[os][:api][version].first
+          { platform: platform[0], browserName: platform[1], version: platform[2] }
         end
       end
     else
       versions.map do |version|
         os = platforms.detect { |os, details| details[:api][version].any? }.first
-        platforms[os][:api][version].first
+        platform = platforms[os][:api][version].first
+        { platform: platform[0], browserName: platform[1], version: platform[2] }
       end
     end
   end

@@ -10,22 +10,38 @@ module Blade::SauceLabsPlugin
 
   autoload :Client, "blade/sauce_labs_plugin/client"
   autoload :Tunnel, "blade/sauce_labs_plugin/tunnel"
+  autoload :WebDriver, "blade/sauce_labs_plugin/web_driver"
+  autoload :Job, "blade/sauce_labs_plugin/job"
+  autoload :JobManager, "blade/sauce_labs_plugin/job_manager"
 
   def start
     if Blade.config.interface == :ci
-      Tunnel.start do
-        Blade.config.expected_sessions = Client.platforms.size
-        Client.request(:post, "rest/v1/#{username}/js-tests", test_params)
+      tunnel.start do
+        Blade.config.expected_sessions = client.platforms.size
+        job_manager.start
       end
     end
   end
 
   def stop
-    Tunnel.stop
+    tunnel.stop
+    job_manager.stop
   end
 
   # Ensure the tunnel is closed
-  at_exit { stop }
+  at_exit { tunnel.stop }
+
+  def tunnel
+    Tunnel
+  end
+
+  def client
+    Client
+  end
+
+  def job_manager
+    JobManager
+  end
 
   def config
     Blade.plugins.sauce_labs.config
@@ -48,74 +64,4 @@ module Blade::SauceLabsPlugin
   def debug?
     config.debug == true
   end
-
-  private
-    def test_params
-      camelize_keys(combined_test_config)
-    end
-
-    def combined_test_config
-      default_test_config.merge(env_test_config).merge(test_config).select { |k, v| v.present? }
-    end
-
-    def test_config
-      config.test_config || {}
-    end
-
-    def default_test_config
-      {
-        url: Blade.url,
-        platforms: Client.platforms,
-        framework: Blade.config.framework,
-        tunnel_identifier: Tunnel.identifier,
-        max_duration: 300,
-        name: "Blade Runner CI",
-        build: default_build
-      }
-    end
-
-    def env_test_config
-      {}.tap do |config|
-        if build = (get_env_value(:build) || get_env_value(:build_number))
-          config[:build] = build
-        end
-
-        tags = []
-
-        [:commit, :repo_slug, :pull_request].each do |key|
-          if tag = tag_from_env(key)
-            tags << tag
-          end
-        end
-
-        config[:tags] = tags if tags.any?
-      end
-    end
-
-    def tag_from_env(key)
-      if value = get_env_value(key)
-        [key, value].join(":")
-      end
-    end
-
-    def get_env_value(key)
-      key = key.to_s.upcase
-      ENV[key] || ENV["TRAVIS_#{key}"]
-    end
-
-    def default_build
-      [rev, Time.now.utc.to_i].select(&:present?).join("-")
-    end
-
-    def rev
-      @rev ||= `git rev-parse HEAD 2>/dev/null`.chomp
-    end
-
-    def camelize_keys(hash)
-      {}.tap do |result|
-        hash.each do |key, value|
-          result[key.to_s.camelize(:lower)] = value
-        end
-      end
-    end
 end

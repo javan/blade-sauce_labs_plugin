@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "webmock", "~> 1.21.0"
 
   spec.add_dependency "blade"
+  spec.add_dependency "selenium-webdriver"
   spec.add_dependency "faraday"
   spec.add_dependency "childprocess"
 end
