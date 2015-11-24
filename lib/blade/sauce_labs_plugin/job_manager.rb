@@ -100,7 +100,7 @@ module Blade::SauceLabsPlugin::JobManager
 
     def env_test_config
       {}.tap do |config|
-        if build = (get_env_value(:build) || get_env_value(:build_number))
+        if build = (get_env_value(:build) || get_env_value(:job_number))
           config[:build] = build
         end
 
