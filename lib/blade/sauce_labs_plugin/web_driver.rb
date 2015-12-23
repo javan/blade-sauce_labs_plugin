@@ -25,6 +25,12 @@ class Blade::SauceLabsPlugin::WebDriver < EventMachine::Completion
     end
   end
 
+  def stop
+    EM.defer do
+      yield(quit_driver)
+    end
+  end
+
   def active?
     completed?
   end
@@ -60,6 +66,14 @@ class Blade::SauceLabsPlugin::WebDriver < EventMachine::Completion
       driver
     rescue
       nil
+    end
+
+    def quit_driver
+      return unless active?
+      driver.quit
+      true
+    rescue
+      false
     end
 
     def http_client

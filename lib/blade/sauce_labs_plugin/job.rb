@@ -35,9 +35,16 @@ class Blade::SauceLabsPlugin::Job < EventMachine::Completion
   end
 
   def stop
-    return if state == :stopped
-    if client.stop_job(id).success?
-      change_state :stopped
+    return unless completed?
+
+    web_driver.stop do |success|
+      if success
+        change_state :stopped
+      else
+        if client.stop_job(id).success?
+          change_state :stopped
+        end
+      end
     end
   end
 
