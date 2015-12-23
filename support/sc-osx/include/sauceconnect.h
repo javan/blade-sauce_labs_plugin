@@ -63,6 +63,7 @@ int sc_stop(struct sc_ctx *ctx);
  */
 #define SC_STATUS_RUNNING 0x01
 #define SC_STATUS_EXITING 0x02
+#define SC_STATUS_STOPPED 0x03
 int sc_status(struct sc_ctx *ctx);
 
 /*
