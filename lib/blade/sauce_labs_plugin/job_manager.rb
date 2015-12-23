@@ -69,8 +69,8 @@ module Blade::SauceLabsPlugin::JobManager
       Blade.subscribe("/results") do |details|
         if details["completed"]
           if job = jobs.detect { |job| job.session_id == details["session_id"] }
-            job.update(passed: (details["state"] != "failed"))
             job.stop
+            job.update(passed: (details["state"] != "failed"))
             EM.add_timer(1) { process_queue }
           end
         end
