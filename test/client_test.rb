@@ -113,6 +113,7 @@ class ClientTest < TestCase
     end
 
     def initialize_with_browsers(browsers)
-      Blade.initialize! plugins: { sauce_labs: { browsers: browsers } }
+      Blade.initialize!
+      Blade.config.plugins.sauce_labs = { browsers: browsers }
     end
 end

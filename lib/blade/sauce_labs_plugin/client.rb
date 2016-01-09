@@ -11,8 +11,7 @@ module Blade::SauceLabsPlugin::Client
 
   MOBILE_PATTERN = /iphone|ipad|android/i
 
-  extend Forwardable
-  def_delegators Blade::SauceLabsPlugin, :config, :username, :access_key, :debug?
+  delegate :config, :username, :access_key, :debug?, to: Blade::SauceLabsPlugin
 
   def request(method, path, params = {})
     connection.send(method) do |req|

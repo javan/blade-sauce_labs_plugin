@@ -44,7 +44,7 @@ module Blade::SauceLabsPlugin
   end
 
   def config
-    Blade.plugins.sauce_labs.config
+    Blade.config.plugins.sauce_labs
   end
 
   def username
