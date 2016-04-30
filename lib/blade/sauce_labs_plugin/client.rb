@@ -70,19 +70,23 @@ module Blade::SauceLabsPlugin::Client
   def platforms_for_browser(browser)
     long_name = find_browser_long_name(browser[:name])
     platforms = available_platforms_by_browser[long_name]
-    platform_versions = platforms.flat_map { |os, details| details[:versions] }.uniq.sort_by(&:to_f).reverse
 
-    versions =
-      if browser[:version].is_a?(Numeric) && browser[:version] < 0
-        platform_versions.select { |v| v =~ /^\d/ }.first(browser[:version].abs.to_i)
-      elsif browser[:version].present?
-        Array(browser[:version]).map(&:to_s)
-      else
-        platform_versions.first(1)
-      end
+    versions_by_os = {}
+    platforms.each do |os, details|
+      versions_by_os[os] = details[:versions].uniq.sort_by(&:to_f).reverse
+    end
 
     if browser[:os].any?
       browser[:os].flat_map do |browser_os|
+        versions =
+          if browser[:version].is_a?(Numeric) && browser[:version] < 0
+            versions_by_os[browser_os].select { |v| v =~ /^\d/ }.first(browser[:version].abs.to_i)
+          elsif browser[:version].present?
+            Array(browser[:version]).map(&:to_s)
+          else
+            versions_by_os[browser_os].first(1)
+          end
+
         versions.map do |version|
           os = platforms.keys.detect { |os| os =~ Regexp.new(browser_os, Regexp::IGNORECASE) }
           platform = platforms[os][:api][version].first
@@ -90,6 +94,16 @@ module Blade::SauceLabsPlugin::Client
         end
       end
     else
+      all_versions = versions_by_os.values.flatten.uniq
+      versions =
+        if browser[:version].is_a?(Numeric) && browser[:version] < 0
+          all_versions.select { |v| v =~ /^\d/ }.first(browser[:version].abs.to_i)
+        elsif browser[:version].present?
+          Array(browser[:version]).map(&:to_s)
+        else
+          all_versions.first(1)
+        end
+
       versions.map do |version|
         os = platforms.detect { |os, details| details[:api][version].any? }.first
         platform = platforms[os][:api][version].first

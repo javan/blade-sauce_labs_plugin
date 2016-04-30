@@ -100,6 +100,17 @@ class ClientTest < TestCase
       ], chrome: { os: ["Mac", "Windows"], version: -2 }
   end
 
+
+  test "platforms for browser on multiple operating systems with latest versions that aren't identical" do
+    # When Sauce Labs has a newer version of a browser for one OS
+    assert_platforms [
+        ["Mac 10.9", "chrome", "44"],
+        ["Mac 10.9", "chrome", "43"],
+        ["Linux", "chrome", "43"],
+        ["Linux", "chrome", "42"]
+      ], chrome: { os: ["Mac", "Linux"], version: -2 }
+  end
+
   private
     def assert_platforms(platforms, browsers)
       initialize_with_browsers browsers
