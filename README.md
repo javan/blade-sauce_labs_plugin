@@ -4,7 +4,7 @@
 
 ### Authenticate with Sauce Labs
 
-Set the `SAUCE_USERNAME` and `SAUCE_API_KEY` environment variables to authenticate with Sauce Labs.
+Set the `SAUCE_USERNAME` and `SAUCE_ACCESS_KEY` environment variables to authenticate with Sauce Labs.
 
 All CI tools provide a way to set environment variables for a test run. For non-CI test runs, set the environment variables in your shell or in your test runner script.
 
