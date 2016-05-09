@@ -48,11 +48,11 @@ module Blade::SauceLabsPlugin
   end
 
   def username
-    config.username || ENV["SAUCE_USERNAME"]
+    ENV["SAUCE_USERNAME"] || config.username
   end
 
   def access_key
-    config.access_key || ENV["SAUCE_ACCESS_KEY"]
+    ENV["SAUCE_ACCESS_KEY"] || config.access_key
   end
 
   def debug(message)

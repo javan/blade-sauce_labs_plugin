@@ -36,6 +36,7 @@ module Blade::SauceLabsPlugin::Tunnel
       ChildProcess.build(tunnel_command, *tunnel_args).tap do |process|
         process.leader = true
         process.io.inherit! if debug?
+        process.environment.merge! tunnel_env
         process.start
         debug process.inspect
       end
@@ -46,7 +47,11 @@ module Blade::SauceLabsPlugin::Tunnel
     end
 
     def tunnel_args
-      ["--user", username, "--api-key", access_key, "--tunnel-identifier", identifier, "--readyfile", ready_file_path]
+      ["--tunnel-identifier", identifier, "--readyfile", ready_file_path]
+    end
+
+    def tunnel_env
+      { "SAUCE_USERNAME" => username, "SAUCE_API_KEY" => access_key }
     end
 
     def ready_file_path
