@@ -51,7 +51,7 @@ module Blade::SauceLabsPlugin::Tunnel
     end
 
     def tunnel_env
-      { "SAUCE_USERNAME" => username, "SAUCE_API_KEY" => access_key }
+      { "SAUCE_USERNAME" => username, "SAUCE_ACCESS_KEY" => access_key }
     end
 
     def ready_file_path
