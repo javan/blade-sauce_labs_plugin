@@ -49,3 +49,21 @@ plugins:
 ```
 
 See Sauce Labs' [Platform Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator) for an exhaustive list of supported devices, operating systems, and browsers.
+
+### Advanced configuration
+
+For low-level Sauce Connect configuration, set `tunnel_args` to an array of command line arguments.
+
+Example:
+```yaml
+plugins:
+  sauce_labs:
+    tunnel_args:
+      - "--verbose"     # Turn on verbose logging.
+      - "--vm-version"  # Use the varnish VM for WebSockets support.
+      - "dev-varnish"
+```
+
+The plugin already sets the `--user`, `--api-key`, `--tunnel-identifier`, and `--readyfile` arguments, so don't set these yourself.
+
+Full [Sauce Connect command line reference](https://wiki.saucelabs.com/pages/viewpage.action?pageId=48365781).

@@ -47,7 +47,7 @@ module Blade::SauceLabsPlugin::Tunnel
     end
 
     def tunnel_args
-      ["--tunnel-identifier", identifier, "--readyfile", ready_file_path]
+      ["--tunnel-identifier", identifier, "--readyfile", ready_file_path] + Array(config.tunnel_args)
     end
 
     def tunnel_env
