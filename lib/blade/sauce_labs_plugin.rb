@@ -13,11 +13,12 @@ module Blade::SauceLabsPlugin
   autoload :WebDriver, "blade/sauce_labs_plugin/web_driver"
   autoload :Job, "blade/sauce_labs_plugin/job"
   autoload :JobManager, "blade/sauce_labs_plugin/job_manager"
+  autoload :SessionManager, "blade/sauce_labs_plugin/session_manager"
 
   def start
     if Blade.config.interface == :ci
       tunnel.start do
-        Blade.config.expected_sessions = client.platforms.size
+        session_manager.start
         job_manager.start
       end
     end
@@ -37,6 +38,10 @@ module Blade::SauceLabsPlugin
 
   def client
     Client
+  end
+
+  def session_manager
+    SessionManager
   end
 
   def job_manager

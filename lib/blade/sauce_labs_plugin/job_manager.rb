@@ -3,7 +3,7 @@ module Blade::SauceLabsPlugin::JobManager
 
   Job = Blade::SauceLabsPlugin::Job
 
-  delegate :config, :client, to: Blade::SauceLabsPlugin
+  delegate :config, :client, :session_manager, to: Blade::SauceLabsPlugin
 
   cattr_accessor(:job_queue) { EM::Queue.new }
   cattr_accessor(:jobs) { [] }
@@ -11,7 +11,12 @@ module Blade::SauceLabsPlugin::JobManager
   def start
     enqueue_jobs
     process_queue
-    handle_completed_jobs
+
+    Blade.subscribe("/results") do |details|
+      if details[:completed]
+        EM.add_timer(1) { process_queue }
+      end
+    end
   end
 
   def stop
@@ -36,6 +41,7 @@ module Blade::SauceLabsPlugin::JobManager
           job_queue.pop do |job|
             job.callback do
               jobs << job
+              session_manager.update(job.session_id, job: job)
             end
 
             job.errback do
@@ -61,18 +67,6 @@ module Blade::SauceLabsPlugin::JobManager
           @vm_timer.cancel
           @vm_timer = nil
           process_queue
-        end
-      end
-    end
-
-    def handle_completed_jobs
-      Blade.subscribe("/results") do |details|
-        if details["completed"]
-          if job = jobs.detect { |job| job.session_id == details["session_id"] }
-            job.stop
-            job.update(passed: (details["state"] != "failed"))
-            EM.add_timer(1) { process_queue }
-          end
         end
       end
     end
