@@ -38,9 +38,19 @@ class Blade::SauceLabsPlugin::WebDriver < EventMachine::Completion
   def navigate_to(url)
     EM.defer do
       begin
-        driver.navigate.to url
-        sleep 0.5
-        yield driver.current_url == url
+        driver.navigate.to(url)
+
+        start = Time.now
+
+        EM.tick_loop do
+          if driver.current_url == url
+            yield true
+            :stop
+          elsif Time.now - start > 2
+            yield false
+            :stop
+          end
+        end
       rescue
         yield false
       end
