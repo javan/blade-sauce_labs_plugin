@@ -1,0 +1,25 @@
+#!/bin/bash
+set -euo pipefail
+
+which -s wget || brew install wget
+which -s jq || brew install jq
+
+download_and_extract() {
+  local url="$1"
+  local dirname="$2"
+  local extension="$3"
+  local filename="$dirname$extension"
+
+  wget "$url" -O "$filename"
+  tar -zxvf "$filename" -C "$dirname" --strip=1
+  rm -f "$filename"
+}
+
+platforms=$(curl https://saucelabs.com/versions.json | jq '."Sauce Connect"')
+
+osx_url=$(echo "$platforms" | jq --raw-output '.osx.download_url')
+linux_url=$(echo "$platforms" | jq --raw-output '.linux.download_url')
+
+cd support
+download_and_extract "$osx_url" "sc-osx" ".zip"
+download_and_extract "$linux_url" "sc-linux" ".tar.gz"
