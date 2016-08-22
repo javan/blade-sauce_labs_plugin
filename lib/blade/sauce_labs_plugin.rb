@@ -60,6 +60,10 @@ module Blade::SauceLabsPlugin
     ENV["SAUCE_ACCESS_KEY"] || config.access_key
   end
 
+  def tunnel_timeout
+    (ENV["SAUCE_TUNNEL_TIMEOUT"] || config.tunnel_timeout || 60).to_i
+  end
+
   def debug(message)
     if debug?
       STDERR.puts message
