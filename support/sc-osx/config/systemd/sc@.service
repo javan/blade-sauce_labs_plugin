@@ -1,0 +1,25 @@
+[Unit]
+Description=Sauce Connect worker service on port %i
+PartOf=sc.service
+ReloadPropagatedFrom=sc.service
+
+[Service]
+  Type=simple
+  User=nobody
+  Group=nogroup
+  WorkingDirectory=/tmp
+  LimitNOFILE=8192
+
+  EnvironmentFile=/etc/default/sc
+  ExecStart = /usr/local/bin/sc \
+                --logfile - \
+                --user "$SAUCE_USERNAME" \
+                --api-key "$SAUCE_ACCESS_KEY" \
+                --pidfile "/tmp/.sauceconnect_%i.pid" \
+                --se-port "%i" \
+                --no-remove-colliding-tunnels \
+                --wait-tunnel-shutdown
+  # ExecStartPost = /bin/rm -f /tmp/.sauceconnect_%i.pid
+
+[Install]
+WantedBy=multi-user.target
