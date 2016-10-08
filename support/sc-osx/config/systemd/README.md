@@ -20,6 +20,13 @@ port 8000 & 8001:
     $ sudo ln -s /etc/systemd/system/sc@.service ./sc.service.wants/sc@8000.service
     $ sudo ln -s /etc/systemd/system/sc@.service ./sc.service.wants/sc@8001.service
 ```
+3. Add your Saucelabs credentials to `/etc/systemd/system/sc@.service` in the
+   service section like this:
+```
+    Environment=SAUCE_USERNAME=myusername
+    Environment=SAUCE_ACCESS_KEY=fd69b0a8-337c-3303-b1bd-xxxxxxxxxxx
+```
+
 Starting and Stopping the Service
 ---------------------
 After you have configured the instances, you can start up the new service:

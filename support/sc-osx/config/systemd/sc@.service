@@ -9,17 +9,20 @@ ReloadPropagatedFrom=sc.service
   Group=nogroup
   WorkingDirectory=/tmp
   LimitNOFILE=8192
+  Restart=always
 
-  EnvironmentFile=/etc/default/sc
+  # Set those to match your Saucelabs credentials
+  Environment=SAUCE_USERNAME=username
+  Environment=SAUCE_ACCESS_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
   ExecStart = /usr/local/bin/sc \
                 --logfile - \
-                --user "$SAUCE_USERNAME" \
-                --api-key "$SAUCE_ACCESS_KEY" \
-                --pidfile "/tmp/.sauceconnect_%i.pid" \
+                --pidfile "/tmp/sauceconnect_%i.pid" \
                 --se-port "%i" \
                 --no-remove-colliding-tunnels \
                 --wait-tunnel-shutdown
-  # ExecStartPost = /bin/rm -f /tmp/.sauceconnect_%i.pid
+  # Not needed with systemd
+  ExecStartPost = /bin/rm -f /tmp/sauceconnect_%i.pid
 
 [Install]
 WantedBy=multi-user.target
