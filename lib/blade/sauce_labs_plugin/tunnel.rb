@@ -22,7 +22,7 @@ module Blade::SauceLabsPlugin::Tunnel
         elapsed = Time.now - started_at
         if elapsed > tunnel_timeout
           timer.cancel
-          STDERR.puts "Failed to establish tunnel connection after #{elapsed}s:\n#{logs}"
+          STDERR.puts "Failed to establish tunnel connection after #{elapsed}s:"
           STDERR.puts tunnel_io.tap(&:rewind).read
           exit(1)
         end
