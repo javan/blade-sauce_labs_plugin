@@ -5,7 +5,7 @@ class Blade::SauceLabsPlugin::WebDriver < EventMachine::Completion
     delegate :username, :access_key, to: Blade::SauceLabsPlugin
   end
 
-  cattr_accessor(:url ) { "http://#{username}:#{access_key}@ondemand.saucelabs.com:80/wd/hub" }
+  cattr_accessor(:url ) { "https://#{username}:#{access_key}@ondemand.saucelabs.com:443/wd/hub" }
 
   attr_reader :capabilities
   attr_reader :driver
