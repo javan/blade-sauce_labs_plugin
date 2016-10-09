@@ -7,9 +7,11 @@ module Blade::SauceLabsPlugin::Tunnel
   extend Forwardable
   def_delegators Blade::SauceLabsPlugin, :username, :access_key, :tunnel_timeout, :config, :debug, :debug?
 
-  attr_reader :identifier, :process
+  attr_reader :identifier
 
   def start
+    return if @process
+
     @identifier = SecureRandom.hex(10)
     @process = create_child_process
 
@@ -31,13 +33,14 @@ module Blade::SauceLabsPlugin::Tunnel
   end
 
   def stop
+    return unless @process
+
     begin
       tunnel_io.unlink
-      process.poll_for_exit(10)
-    rescue ChildProcess::TimeoutError
-      process.stop
-    rescue
-      nil
+      @process.stop(15)
+      @process = nil
+    rescue => error
+      debug "Error stopping tunnel: #{error}"
     end
   end
 
