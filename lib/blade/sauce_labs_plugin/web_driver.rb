@@ -89,7 +89,12 @@ class Blade::SauceLabsPlugin::WebDriver < EventMachine::Completion
     def http_client
       @http_client ||= begin
         client = Selenium::WebDriver::Remote::Http::Default.new
-        client.timeout = 260
+        if client.respond_to?(:open_timeout)
+          client.open_timeout = 60
+          client.read_timeout = 260
+        else
+          client.timeout = 260
+        end
         client
       end
     end
