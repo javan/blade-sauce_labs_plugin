@@ -4,13 +4,6 @@ require "json"
 module Blade::SauceLabsPlugin::Client
   extend self
 
-  ALIASES = {
-    "ie" => "Internet Explorer",
-    "IE" => "Internet Explorer"
-  }
-
-  MOBILE_PATTERN = /iphone|ipad|android/i
-
   delegate :config, :username, :access_key, :debug?, to: Blade::SauceLabsPlugin
 
   def request(method, path, params = {})
@@ -68,8 +61,7 @@ module Blade::SauceLabsPlugin::Client
   end
 
   def platforms_for_browser(browser)
-    long_name = find_browser_long_name(browser[:name])
-    platforms = available_platforms_by_browser[long_name]
+    platforms = available_platforms_for_browser(browser)
 
     versions_by_os = {}
     platforms.each do |os, details|
@@ -112,19 +104,32 @@ module Blade::SauceLabsPlugin::Client
     end
   end
 
-  def find_browser_long_name(name)
-    if match = ALIASES[name.to_s]
-      match
-    else
-      available_platforms_by_browser.keys.detect do |long_name|
-        long_name =~ Regexp.new(name, Regexp::IGNORECASE)
+  def available_platforms_for_browser(browser)
+    {}.tap do |platforms|
+      find_browser_long_names(browser[:name]).each do |long_name|
+        available_platforms_by_browser[long_name].each do |os, details|
+
+          if platforms[os]
+            platforms[os][:versions] = (platforms[os][:versions] + details[:versions]).compact.uniq
+
+            details[:api].each do |key, values|
+              if platforms[os][:api][key]
+                platforms[os][:api][key] = (platforms[os][:api][key] + values).compact.uniq
+              else
+                platforms[os][:api][key] = values
+              end
+            end
+          else
+            platforms[os] = details
+          end
+        end
       end
     end
   end
 
   def available_platforms_by_browser
     @available_platforms_by_browser ||= {}.tap do |by_browser|
-      available_platforms.group_by { |p| p[:api_name] }.each do |api_name, platforms|
+      available_platforms.group_by { |p| [ p[:device], p[:api_name] ].compact.join(":") }.each do |api_name, platforms|
         long_name = platforms.first[:long_name]
         by_browser[long_name] = {}
 
@@ -157,6 +162,14 @@ module Blade::SauceLabsPlugin::Client
         faraday.response :logger if debug?
       end
     end
+
+    def find_browser_long_names(name)
+      pattern = Regexp.new(name, Regexp::IGNORECASE)
+      available_platforms_by_browser.keys.select do |long_name|
+        long_name =~ pattern
+      end
+    end
+
 
     def available_platforms
       @available_platforms ||= JSON.parse(connection.get("/rest/v1/info/platforms/webdriver").body).map(&:symbolize_keys)

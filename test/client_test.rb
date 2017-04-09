@@ -24,11 +24,6 @@ class ClientTest < TestCase
     assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], chrome: LATEST_CHROME
   end
 
-  test "platforms for browser using name alias" do
-    assert_platforms ["Windows 10", "internet explorer", "11"], IE: 11
-    assert_platforms ["Windows 10", "internet explorer", "11"], ie: 11
-  end
-
   test "platforms for browser on one operating system" do
     assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], chrome: { os: "Mac" }
     assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], chrome: { os: ["Mac"] }
@@ -101,6 +96,22 @@ class ClientTest < TestCase
         ["Windows 2012", "chrome", "#{LATEST_CHROME}"],
         ["Windows 2012", "chrome", "#{LATEST_CHROME - 1}"]
       ], chrome: { os: ["Mac", "Windows"], version: - 2 }
+  end
+
+  test "platforms for Android" do
+    assert_platforms [
+        ["Linux", "android", "6.0"],
+        ["Linux", "android", "5.1"],
+        ["Linux", "android", "4.4"]
+      ], "Android": { version: [6.0, 5.1, 4.4] }
+  end
+
+  test "platforms for iPhone" do
+    assert_platforms [
+        ["Mac 10.11", "iphone", "10.0"],
+        ["Mac 10.11", "iphone", "9.3"],
+        ["Mac 10.10", "iphone", "8.4"],
+      ], "iPhone": { version: [10.0, 9.3, 8.4] }
   end
 
   private
