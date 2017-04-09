@@ -2,6 +2,9 @@ require "test_helper"
 require "webmock/minitest"
 
 class ClientTest < TestCase
+  # Versions from sauce_webdrivers.json
+  LATEST_CHROME = 57
+
   setup do
     WebMock.disable_net_connect!
 
@@ -10,15 +13,15 @@ class ClientTest < TestCase
   end
 
   test "platforms for browser" do
-    assert_platforms ["Mac 10.9", "chrome", "44"], "Google Chrome": { version: 44 }
-    assert_platforms ["Mac 10.9", "chrome", "44"], "Google Chrome": 44
-    assert_platforms ["Mac 10.9", "chrome", "44"], "Google Chrome": nil
-    assert_platforms ["Mac 10.9", "chrome", "44"], "Google Chrome": ""
-    assert_platforms ["Mac 10.9", "chrome", "44"], "Google Chrome": true
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], "Google Chrome": { version: LATEST_CHROME }
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], "Google Chrome": LATEST_CHROME
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], "Google Chrome": nil
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], "Google Chrome": ""
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], "Google Chrome": true
   end
 
   test "platforms for browser using name that matches" do
-    assert_platforms ["Mac 10.9", "chrome", "44"], chrome: 44
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], chrome: LATEST_CHROME
   end
 
   test "platforms for browser using name alias" do
@@ -27,24 +30,24 @@ class ClientTest < TestCase
   end
 
   test "platforms for browser on one operating system" do
-    assert_platforms ["Mac 10.9", "chrome", "44"], chrome: { os: "Mac" }
-    assert_platforms ["Mac 10.9", "chrome", "44"], chrome: { os: ["Mac"] }
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], chrome: { os: "Mac" }
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], chrome: { os: ["Mac"] }
   end
 
   test "platforms for browser on multiple operating systems" do
     assert_platforms [
-        ["Mac 10.9", "chrome", "44"],
-        ["Windows 10", "chrome", "44"]
+        ["Mac 10.9", "chrome", "#{LATEST_CHROME}"],
+        ["Windows 2012", "chrome", "#{LATEST_CHROME}"]
       ], chrome: { os: ["Mac", "Windows"] }
 
     assert_platforms [
-        ["Mac 10.9", "chrome", "44"],
-        ["Windows 10", "chrome", "44"]
+        ["Mac 10.9", "chrome", "#{LATEST_CHROME}"],
+        ["Windows 2012", "chrome", "#{LATEST_CHROME}"]
       ], chrome: { os: "Mac, Windows" }
   end
 
   test "platforms for browser with version" do
-    assert_platforms ["Mac 10.9", "chrome", "43"], chrome: 43
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME - 1}"], chrome: LATEST_CHROME - 1
   end
 
   test "platforms for browser with non-numeric version" do
@@ -60,25 +63,25 @@ class ClientTest < TestCase
   end
 
   test "platforms for browser with latest versions" do
-    assert_platforms ["Mac 10.9", "chrome", "44"], chrome: { version: -1 }
-    assert_platforms ["Mac 10.9", "chrome", "44"], chrome: -1
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], chrome: { version: -1 }
+    assert_platforms ["Mac 10.9", "chrome", "#{LATEST_CHROME}"], chrome: -1
 
     assert_platforms [
-        ["Mac 10.9", "chrome", "44"],
-        ["Mac 10.9", "chrome", "43"]
+        ["Mac 10.9", "chrome", "#{LATEST_CHROME}"],
+        ["Mac 10.9", "chrome", "#{LATEST_CHROME - 1}"]
       ], chrome: -2
 
     assert_platforms [
-        ["Mac 10.9", "chrome", "44"],
-        ["Mac 10.9", "chrome", "43"],
-        ["Mac 10.9", "chrome", "42"]
+        ["Mac 10.9", "chrome", "#{LATEST_CHROME}"],
+        ["Mac 10.9", "chrome", "#{LATEST_CHROME - 1}"],
+        ["Mac 10.9", "chrome", "#{LATEST_CHROME - 2}"]
       ], chrome: -3
   end
 
   test "platforms for browser on multiple operating systems with version" do
     assert_platforms [
         ["Mac 10.9", "chrome", "43"],
-        ["Windows 10", "chrome", "43"]
+        ["Windows 2012", "chrome", "43"]
       ], chrome: { os: ["Mac", "Windows"], version: 43 }
   end
 
@@ -86,29 +89,18 @@ class ClientTest < TestCase
     assert_platforms [
         ["Mac 10.9", "chrome", "39"],
         ["Mac 10.9", "chrome", "38"],
-        ["Windows 10", "chrome", "39"],
-        ["Windows 10", "chrome", "38"]
+        ["Windows 2012", "chrome", "39"],
+        ["Windows 2012", "chrome", "38"]
       ], chrome: { os: ["Mac", "Windows"], version: [39, 38] }
   end
 
   test "platforms for browser on multiple operating systems with latest versions" do
     assert_platforms [
-        ["Mac 10.9", "chrome", "44"],
-        ["Mac 10.9", "chrome", "43"],
-        ["Windows 10", "chrome", "44"],
-        ["Windows 10", "chrome", "43"]
-      ], chrome: { os: ["Mac", "Windows"], version: -2 }
-  end
-
-
-  test "platforms for browser on multiple operating systems with latest versions that aren't identical" do
-    # When Sauce Labs has a newer version of a browser for one OS
-    assert_platforms [
-        ["Mac 10.9", "chrome", "44"],
-        ["Mac 10.9", "chrome", "43"],
-        ["Linux", "chrome", "43"],
-        ["Linux", "chrome", "42"]
-      ], chrome: { os: ["Mac", "Linux"], version: -2 }
+        ["Mac 10.9", "chrome", "#{LATEST_CHROME}"],
+        ["Mac 10.9", "chrome", "#{LATEST_CHROME - 1}"],
+        ["Windows 2012", "chrome", "#{LATEST_CHROME}"],
+        ["Windows 2012", "chrome", "#{LATEST_CHROME - 1}"]
+      ], chrome: { os: ["Mac", "Windows"], version: - 2 }
   end
 
   private
