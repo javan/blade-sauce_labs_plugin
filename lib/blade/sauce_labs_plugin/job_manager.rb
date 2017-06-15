@@ -87,6 +87,7 @@ module Blade::SauceLabsPlugin::JobManager
       {
         tunnel_identifier: Blade::SauceLabsPlugin::Tunnel.identifier,
         max_duration: 300,
+        idle_timeout: 300,
         name: "Blade Runner CI",
         build: default_build
       }
