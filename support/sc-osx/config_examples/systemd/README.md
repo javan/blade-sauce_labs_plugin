@@ -1,16 +1,22 @@
 Systemd is a system and service manager for Linux that, among other things, can be used to control the starting and stopping of services. For more information check out https://www.freedesktop.org/wiki/Software/systemd/
 
-Sauce Connect is a secure tunneling application that allows the Sauce Labs browser cloud to connect to websites you want to test that are hosted on localhost or behind a firewall. For more information check out the Sauce Labs documentation wiki: https://wiki.saucelabs.com/display/DOCS/Sauce+Connect
+Systemd will automatically start the Sauce Connect service, monitor each client, and tranparently restart the client if the client gets disconnected or a tunnel goes down.
+
+Sauce Connect is a secure tunneling application that allows the Sauce Labs browser cloud to connect to websites you want to test that are hosted on your local machine or behind a firewall. For more information check out the Sauce Labs documentation wiki: https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy
 
 These instructions will show you how to set up systemd with Sauce Connect to manage the starting and stopping of Sauce Connect tunnels.
-
-Systemd will automatically start the Sauce Connect service, monitor each client, and tranparently restart the client if the client gets disconnected or a tunnel goes down.
 
 Setting Up systemd
 ----------------
 
-1. Copy the files `sc.service` & `sc@.service` to `/etc/systemd/system`.
-2. Create a directory `sc.service.wants` in `/etc/systemd/system`.
+1. Install the Sauce connect binary in `bin/sc` to `/usr/local/bin/sc`.
+2. Set permissions on Sauce connect binary with `chown nobody: /usr/local/bin/sc`
+3. Copy the files `sc.service` & `sc@.service` to `/etc/systemd/system`.
+4. Review and update example service files for your system. For example:
+   * Set `SAUCE_USERNAME` and `SAUCE_ACCESS_KEY` environment variables
+   * Confirm correct group for user `nobody`
+   * Confirm the command run by `ExecStart` works when run manually on your system.
+5. Create a directory `sc.service.wants` in `/etc/systemd/system`.
    You'll have to create symbolic links inside this directory to set up new instances of Sauce
 Connect. For example, if you'd like to have two Sauce Connect instances listening on
 port 8000 & 8001:
@@ -20,7 +26,7 @@ port 8000 & 8001:
     $ sudo ln -s /etc/systemd/system/sc@.service ./sc.service.wants/sc@8000.service
     $ sudo ln -s /etc/systemd/system/sc@.service ./sc.service.wants/sc@8001.service
 ```
-3. Add your Saucelabs credentials to `/etc/systemd/system/sc@.service` in the
+6. Add your Saucelabs credentials to `/etc/systemd/system/sc@.service` in the
    service section like this:
 ```
     Environment=SAUCE_USERNAME=myusername

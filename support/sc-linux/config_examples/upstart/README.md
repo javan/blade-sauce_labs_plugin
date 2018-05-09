@@ -2,20 +2,27 @@ Upstart is an event-based replacement for the `/sbin/init` Linux daemon that han
 
 Upstart will automatically start the Sauce Connect service, monitor each client, and tranparently restart the client if the client gets disconnected or a tunnel goes down.
 
-Sauce Connect is a secure tunneling application that enables the Sauce Labs browser cloud to connect with websites you want to test that are hosted on your local machine or behind a firewall.
+Sauce Connect is a secure tunneling application that allows the Sauce Labs browser cloud to connect to websites you want to test that are hosted on your local machine or behind a firewall. For more information check out the Sauce Labs documentation wiki: https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy
 
 These instructions will help you set up Sauce Connect so that the starting and stopping of tunnels is controlled by Upstart.
 
-1. Install the Sauce connect binary to `/usr/local/bin/sc`.
+Setting Up Upstart
+------------------
+
+1. Install the Sauce connect binary in `bin/sc` to `/usr/local/bin/sc`.
 2. Copy the `sc_worker.conf` & `sc.conf` files to `/etc/init`.
    This will create two new upstart services, `sc_worker` and `sc.conf`. `sc_worker` manages individual Sauce Connect instance, while `sc.conf` manages multiple-instances started with `sc_worker`, allowing you to start multiple instances on the same server.
-3. Check that the services are installed correctly with the `initctl list` command:
+3. Review and update example service files for your system. For example:
+   * Set `SAUCE_USERNAME` and `SAUCE_ACCESS_KEY` environment variables
+   * Confirm correct group for user `nobody`
+   * Confirm the `sc` command works when run manually on your system.
+4. Check that the services are installed correctly with the `initctl list` command:
 ```
     $ initctl list | grep '^sc'
     sc_worker stop/waiting
     sc stop/waiting
 ```
-4. Create a file named `/etc/default/sc` to store Sauce Connect's configuration options.
+5. Create a file named `/etc/default/sc` to store Sauce Connect's configuration options.
    It should look something like that:
 ```
     SAUCE_USERNAME=username

@@ -6,7 +6,7 @@ ReloadPropagatedFrom=sc.service
 [Service]
   Type=simple
   User=nobody
-  Group=nogroup
+  Group=nobody
   WorkingDirectory=/tmp
   LimitNOFILE=8192
   Restart=always
@@ -19,8 +19,7 @@ ReloadPropagatedFrom=sc.service
                 --logfile - \
                 --pidfile "/tmp/sauceconnect_%i.pid" \
                 --se-port "%i" \
-                --no-remove-colliding-tunnels \
-                --wait-tunnel-shutdown
+                --no-remove-colliding-tunnels
   # Not needed with systemd
   ExecStartPost = /bin/rm -f /tmp/sauceconnect_%i.pid
 
